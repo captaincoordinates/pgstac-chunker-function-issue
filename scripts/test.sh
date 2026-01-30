@@ -14,7 +14,12 @@ for pg_version in 16 17; do
     docker compose run \
         --rm \
         pypgstac-$pg_version \
-        pypgstac load items /input/item.json
+        pypgstac load items /input/item1.json
+
+    docker compose run \
+        --rm \
+        pypgstac-$pg_version \
+        pypgstac load items /input/item2.json
 
     echo; echo "** testing $pg_version"; echo
     docker compose run \

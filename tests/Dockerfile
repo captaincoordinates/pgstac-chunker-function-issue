@@ -1,4 +1,4 @@
-FROM python:slim-trixie
+FROM python:3.11-slim-trixie
 
 RUN pip install pytest psycopg2-binary
 
