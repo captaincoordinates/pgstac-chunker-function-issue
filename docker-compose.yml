@@ -1,0 +1,88 @@
+x-pgstac-common: &pgstac-common
+  PGUSER: username
+  POSTGRES_USER: username
+  PGPASSWORD: password
+  POSTGRES_PASSWORD: password
+  PGDATABASE: postgis
+  POSTGRES_DB: postgis
+
+services:
+  pgstac-base:
+    image: captaincoordinates/pgstac-chunker-function-issue:base
+    build:
+      dockerfile: docker/pgstac/Dockerfile
+      context: pgstac
+      target: pgstac
+    volumes:
+      - "./scripts/container:/scripts:ro"
+    command: postgres
+    healthcheck:
+      test: ["CMD", "/scripts/healthcheck.sh"]
+      interval: 1s
+      timeout: 1s
+      retries: 15
+
+  pgstac-16:
+    extends: pgstac-base
+    image: captaincoordinates/pgstac-chunker-function-issue:16
+    build:
+      args:
+        PG_MAJOR: 16
+    ports:
+      - 54316:5432
+    environment:
+      <<: *pgstac-common
+    volumes:
+      - "./.pgdata/16:/var/lib/postgresql/data:rw"
+
+  pgstac-17:
+    extends: pgstac-base
+    image: captaincoordinates/pgstac-chunker-function-issue:17
+    build:
+      args:
+        PG_MAJOR: 17
+    ports:
+      - 54317:5432
+    environment:
+      <<: *pgstac-common
+    volumes:
+      - "./.pgdata/17:/var/lib/postgresql/data:rw"
+
+  pypystac-base:
+    image: captaincoordinates/pgstac-chunker-function-issue-pypgstac:base
+    build:
+      dockerfile: docker/pypgstac/Dockerfile
+      context: pgstac
+    environment:
+      <<: *pgstac-common
+    volumes:
+      - "./data:/input:ro"
+
+  pypgstac-16:
+    extends: pypystac-base
+    image: captaincoordinates/pgstac-chunker-function-issue-pypgstac:16
+    environment:
+      PGHOST: pgstac-16
+      <<: *pgstac-common
+    depends_on:
+      pgstac-16:
+        condition:
+          service_healthy
+ 
+  pypgstac-17:
+    extends: pypystac-base
+    image: captaincoordinates/pgstac-chunker-function-issue-pypgstac:17
+    environment:
+      PGHOST: pgstac-17
+      <<: *pgstac-common
+    depends_on:
+      pgstac-17:
+        condition:
+          service_healthy
+
+  tester:
+    image: captaincoordinates/pgstac-chunker-function-issue-tester
+    build:
+      dockerfile: ./tests/Dockerfile
+    environment:
+      <<: *pgstac-common

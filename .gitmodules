@@ -1,0 +1,3 @@
+[submodule "pgstac"]
+	path = pgstac
+	url = https://github.com/stac-utils/pgstac
