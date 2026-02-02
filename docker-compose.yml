@@ -48,41 +48,31 @@ services:
     volumes:
       - "./.pgdata/17:/var/lib/postgresql/data:rw"
 
-  pypystac-base:
-    image: captaincoordinates/pgstac-chunker-function-issue-pypgstac:base
-    build:
-      dockerfile: docker/pypgstac/Dockerfile
-      context: pgstac
-    environment:
-      <<: *pgstac-common
-    volumes:
-      - "./data:/input:ro"
-
-  pypgstac-16:
-    extends: pypystac-base
-    image: captaincoordinates/pgstac-chunker-function-issue-pypgstac:16
-    environment:
-      PGHOST: pgstac-16
-      <<: *pgstac-common
-    depends_on:
-      pgstac-16:
-        condition:
-          service_healthy
- 
-  pypgstac-17:
-    extends: pypystac-base
-    image: captaincoordinates/pgstac-chunker-function-issue-pypgstac:17
-    environment:
-      PGHOST: pgstac-17
-      <<: *pgstac-common
-    depends_on:
-      pgstac-17:
-        condition:
-          service_healthy
-
-  tester:
-    image: captaincoordinates/pgstac-chunker-function-issue-tester
+  tester-base:
+    image: captaincoordinates/pgstac-chunker-function-issue-tester:base
     build:
       dockerfile: ./tests/Dockerfile
     environment:
       <<: *pgstac-common
+    volumes:
+      - "./data:/data:ro"
+
+  tester-16:
+    extends: tester-base
+    image: captaincoordinates/pgstac-chunker-function-issue-tester:16
+    environment:
+      PGHOST: pgstac-16
+    depends_on:
+      pgstac-16:
+        condition:
+          service_healthy
+    
+  tester-17:
+    extends: tester-base
+    image: captaincoordinates/pgstac-chunker-function-issue-tester:17
+    environment:
+      PGHOST: pgstac-17
+    depends_on:
+      pgstac-17:
+        condition:
+          service_healthy
